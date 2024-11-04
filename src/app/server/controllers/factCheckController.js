@@ -1,0 +1,1 @@
+// Handles fact-checking logic
