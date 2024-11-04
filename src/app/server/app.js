@@ -1,5 +1,5 @@
 const express = require("express");
-const routes = require("."); // Import your routes
+const routes = require("./routes"); // Import your routes
 const errorHandler = require("./middleware/error-handler");
 
 const app = express();
