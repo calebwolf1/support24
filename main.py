@@ -10,6 +10,8 @@ if __name__ == "__main__":
     # Your Google Custom Search API key and search engine ID
     api_key = os.getenv("GOOGLE_SEARCH_KEY")
     cx = os.getenv("SEARCH_ENGINE_ID")
+    # api_key = "AIzaSyDYtszsTD4CL3EhikCHvMNeyyNgS7BWGS8"
+    # cx = "42b3bf15b382f45c2"
 
     claim = "water has four states of matter"  # Example claim
     scraper = ClaimScraper(claim, api_key, cx)

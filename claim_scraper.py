@@ -4,31 +4,33 @@ from scrape import scrape_website
 
 class ClaimScraper:
     def __init__(self, claim, api_key, cx):
-        """
-        Initializes the ClaimScraper with a claim, API key, and search engine ID.
-        :param claim: String representing the claim to search for.
-        :param api_key: Google Custom Search API key.
-        :param cx: Google Custom Search Engine ID.
-        """
         self.claim = claim
         self.api_key = api_key
         self.cx = cx
-        self.sources = []  # To store links for the claim
+        self.sources = []  # Store links for the claim
 
     def get_sources_and_scrape(self):
-        """
-        Get sources (links) for the claim and scrape content from each source.
-        """
-        self.sources = google_search(self.claim, self.api_key, self.cx)  # Perform the search
+        # Perform the search and get a list of URLs
+        self.sources = google_search(self.claim, self.api_key, self.cx)
+        
         scraped_data = []
+        
+        # Check if sources were found
+        if not self.sources:
+            print("No sources found for this claim.")
+            return scraped_data
 
         # Scrape each source (URL)
         for url in self.sources:
             print(f"Scraping content from: {url}")
-            content = scrape_website(url)
-            scraped_data.append({
-                'url': url,
-                'content': content
-            })
-
+            try:
+                content = scrape_website(url)
+                scraped_data.append({
+                    'url': url,
+                    'content': content
+                })
+            except Exception as e:
+                # Handle scraping errors
+                print(f"Failed to retrieve {url}: {e}")
+        
         return scraped_data

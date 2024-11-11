@@ -3,20 +3,23 @@ import requests
 def google_search(query, api_key, cx):
     url = "https://www.googleapis.com/customsearch/v1"
     params = {
-        "key": "AIzaSyDYtszsTD4CL3EhikCHvMNeyyNgS7BWGS8",
-        "cx": "42b3bf15b382f45c2",
+        "key": api_key,
+        "cx": cx,
         "q": query,
-        "num": 5 # Number of results to return
+        # set the number of results to 5
+        "num": 5
     }
-    print(params)
-    try:
-        response = requests.get(url, params=params)
-        # Check if request was successful
-        response.raise_for_status()  # Raise an error if the request failed
-        return response.json()  # Return JSON results
-    except requests.exceptions.RequestException as e:
-        print(f"An error occurred: {e}")
-        return None
+    response = requests.get(url, params=params)
+    
+    if response.status_code == 200:
+        results = response.json()
+        
+        # Extract URLs if items are present in results
+        urls = [item["link"] for item in results.get("items", [])]
+        return urls
+    else:
+        response.raise_for_status()
+
 # source = results["items"][0]["link"]
 
 # # Output the results
