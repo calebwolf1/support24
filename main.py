@@ -1,12 +1,17 @@
-# main.py
+from dotenv import load_dotenv
+import os
 from claim_scraper import ClaimScraper
 
-if __name__ == "__main__":
-    # Your Google Custom Search API key and search engine ID
-    api_key = "AIzaSyDYtszsTD4CL3EhikCHvMNeyyNgS7BWGS8"
-    cx = "42b3bf15b382f45c2"
+load_dotenv()
 
-    claim = "climate change is accelerating due to human activities"  # Example claim
+if __name__ == "__main__":
+    # Load environment variables from .env file
+
+    # Your Google Custom Search API key and search engine ID
+    api_key = os.getenv("GOOGLE_SEARCH_KEY")
+    cx = os.getenv("SEARCH_ENGINE_ID")
+
+    claim = "water has four states of matter"  # Example claim
     scraper = ClaimScraper(claim, api_key, cx)
 
     # Get sources and scrape them
