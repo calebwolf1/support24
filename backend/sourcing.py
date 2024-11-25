@@ -10,11 +10,14 @@ def google_search(query, api_key, cx):
     response = requests.get(url, params=params)
     # Check if request was successful
     if response.status_code == 200:
-        return response.json()  # Return JSON results
+        results = response.json()
+        sources = [item['link'] for item in results.get('items', []) if 'link' in item]
+        return sources
+        # return response.json()  # Return JSON results
     else:
         response.raise_for_status()  # Raise an error if the request failed
 
-    return sources
+    # return sources
 
 # source = results["items"][0]["link"]
 

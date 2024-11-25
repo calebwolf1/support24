@@ -5,8 +5,6 @@ from claim_scraper import ClaimScraper
 load_dotenv()
 
 if __name__ == "__main__":
-    # Load environment variables from .env file
-
     # Your Google Custom Search API key and search engine ID
     api_key = os.getenv("GOOGLE_SEARCH_KEY")
     cx = os.getenv("SEARCH_ENGINE_ID")
