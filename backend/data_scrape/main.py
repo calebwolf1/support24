@@ -1,9 +1,10 @@
 from dotenv import load_dotenv
 import os
-from claim_scraper import ClaimScraper
+from source_and_scrape import ClaimScraper
 
 load_dotenv()
 
+# Main function to run the claim scraper - TESTING PURPOSES ONLY
 if __name__ == "__main__":
     # Your Google Custom Search API key and search engine ID
     api_key = os.getenv("GOOGLE_SEARCH_KEY")

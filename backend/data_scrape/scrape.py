@@ -2,7 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse
 
-def scrape_website(url):
+def scrape_website(url, timeout=3):
     """
     Scrape content from the provided URL.
     :param url: The URL of the website to scrape.
@@ -19,7 +19,7 @@ def scrape_website(url):
 
     try:
         # response = requests.get(url)
-        response = requests.get(url, headers=headers)
+        response = requests.get(url, headers=headers, timeout=timeout)
         response.raise_for_status()  # Raise an exception for bad HTTP status codes
         soup = BeautifulSoup(response.text, 'html.parser')
 
@@ -27,6 +27,7 @@ def scrape_website(url):
         paragraphs = soup.find_all('p')
         return ' '.join([p.get_text() for p in paragraphs])
     
-    except requests.exceptions.RequestException as e:
-        # Handle HTTP errors (e.g., 404, 500) or invalid URLs
-        return f"Failed to retrieve {url}: {str(e)}"
+    except (requests.exceptions.RequestException, requests.exceptions.Timeout) as e:
+        # Handle errors or timeouts by returning an empty string or logging the issue
+        print(f"Error scraping {url}: {e}")
+        return ""  # Return empty string if the scraping fails or times out

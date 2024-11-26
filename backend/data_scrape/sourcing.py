@@ -5,7 +5,8 @@ def google_search(query, api_key, cx):
     params = {
         "key": api_key,
         "cx": cx,
-        "q": query
+        "q": query,
+        "num": 4,  # Number of results to return
     }
     response = requests.get(url, params=params)
     # Check if request was successful
