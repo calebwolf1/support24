@@ -301,7 +301,7 @@ def fact_check_with_openai(claim, snippets):
     prompt = prompt.format(claim=claim) + relevant_info
 
     response = openai_client.chat.completions.create(
-        model="gpt-4",
+        model="gpt-4o-mini",
         messages=[
             {"role": "user", "content": prompt}
         ]
