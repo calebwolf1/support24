@@ -182,6 +182,7 @@ dotenv.load_dotenv()
 
 pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"), environment="us-east-1")
 index_name = "sources"
+pc.delete_index(index_name)
 
 if not pc.has_index(index_name):
     pc.create_index(
@@ -252,7 +253,7 @@ def chunk_text(text, chunk_size=100, overlap=20):
     ]
     return chunks
 
-
+# function not needed anymore
 def extract_relevant_snippets(claim, sources, claim_embedding=None, similarity_threshold=0.85):
     """
     Extract the most relevant snippets from sources based on cosine similarity.
@@ -320,7 +321,7 @@ async def fact_check(claim, user_id):
     sources = {}
     for entry in scraper.get_sources_and_scrape():
         count = 1
-        for chunk in chunk_text(entry['content'], 500, 50):
+        for chunk in chunk_text(entry['content'], 1250, 20):
             id = f"{entry['url']}unique_number:{count}"
             sources[id] = chunk
             count += 1
