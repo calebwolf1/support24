@@ -320,7 +320,7 @@ async def fact_check(claim, user_id):
     sources = {}
     for entry in scraper.get_sources_and_scrape():
         count = 1
-        for chunk in chunk_text(entry['content'], 5000, 500):
+        for chunk in chunk_text(entry['content'], 500, 50):
             id = f"{entry['url']}unique_number:{count}"
             sources[id] = chunk
             count += 1
@@ -334,14 +334,14 @@ async def fact_check(claim, user_id):
     relevant_sources = retrieve_sources_from_pinecone(user_id, claim, precomputed_claim_embedding=claim_embedding)
     
     # Extract the most relevant snippets
-    snippets = extract_relevant_snippets(claim, relevant_sources, claim_embedding)
+    # snippets = extract_relevant_snippets(claim, relevant_sources, claim_embedding)
     
     # Perform fact-checking using the relevant snippets
-    fact_check_result = fact_check_with_openai(claim, snippets)
+    fact_check_result = fact_check_with_openai(claim, relevant_sources)
     
     # Output the result
     print("Claim:", claim)
-    print("Relevant Snippets:", snippets)
+    print("Relevant Snippets:", relevant_sources)
     print("Fact-Check Result:", fact_check_result)
     print("time: ", time.time() - current_time)
 
