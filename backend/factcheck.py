@@ -175,18 +175,33 @@ import dotenv
 import os
 import asyncio
 from sklearn.metrics.pairwise import cosine_similarity
+from data_scrape import source_and_scrape
+import time
 
 dotenv.load_dotenv()
 
 pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"), environment="us-east-1")
 index_name = "sources"
 
+if not pc.has_index(index_name):
+    pc.create_index(
+        index_name,
+        dimension=1536,
+        spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+    )
+
 # Initialize Pinecone index
 index = pc.Index(index_name)
-openai.api_key = os.getenv("OPENAI_API_KEY")
+# Instantiate the OpenAI client
+openai_client = openai.OpenAI(
+        api_key=os.getenv("OPENAI_API_KEY"),
+    )
+
+def clear_index():
+    pc.delete_index(index_name)
 
 def embed_text(text):
-    response = openai.embeddings.create(
+    response = openai_client.embeddings.create(
         model="text-embedding-ada-002",
         input=[text]  # Passing the text inside a list as the new API expects a list of inputs
     )
@@ -221,7 +236,10 @@ def retrieve_sources_from_pinecone(user_id, claim, precomputed_claim_embedding=N
 
     print("Pinecone search results:", search_results)  # Debugging line
 
-    return [result["metadata"]["content"] for result in search_results["matches"]]
+    # Stores both the content of the source and its url (separated from the unique id necessary for 
+    # storage of the chunks)
+    return [(result["metadata"]["content"], result["id"].split("unique_number:")[0]) 
+            for result in search_results["matches"]]
 
 def chunk_text(text, chunk_size=100, overlap=20):
     """
@@ -245,17 +263,19 @@ def extract_relevant_snippets(claim, sources, claim_embedding=None, similarity_t
     snippets = []
     for source in sources:
         # Chunk the source text into smaller segments
-        chunks = chunk_text(source, chunk_size=50, overlap=20)
+        # chunks = chunk_text(source, chunk_size=50, overlap=20)
+        chunks = chunk_text(source[0], chunk_size=500, overlap=50)
         
         # Embed each chunk
+        print("embedding chunks")
         chunk_embeddings = [embed_text(chunk) for chunk in chunks]
-        
+        print("finished embedding chunks")
         # Compute cosine similarity
         similarities = cosine_similarity([claim_embedding], chunk_embeddings)[0]
         
         # Filter chunks by similarity threshold
         relevant_chunks = [
-            (chunks[i], similarities[i])
+            (chunks[i], similarities[i], source[1]) # stores source url as well for future use
             for i in range(len(chunks))
             if similarities[i] >= similarity_threshold
         ]
@@ -279,14 +299,51 @@ def fact_check_with_openai(claim, snippets):
     relevant_info = "\n\n".join([f"({i+1}) {snippet[0]}" for i, snippet in enumerate(snippets)])
     prompt = prompt.format(claim=claim) + relevant_info
 
-    client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-    response = client.chat.completions.create(
+    response = openai_client.chat.completions.create(
         model="gpt-4",
         messages=[
             {"role": "user", "content": prompt}
         ]
     )
     return response.choices[0].message.content # this line is prone to deprecation due to constant updates to openai API
+
+# perform full fact checking pipeline on a given claim
+async def fact_check(claim, user_id):
+    api_key = os.getenv("GOOGLE_SEARCH_KEY")
+    cx = os.getenv("SEARCH_ENGINE_ID")
+
+    current_time = time.time() # for testing purposes
+    # set up the web scraper to retrieve sources
+    scraper = source_and_scrape.ClaimScraper(claim, api_key, cx)
+
+    # builds a dictionary of url:content pairs from scraped sources
+    sources = {}
+    for entry in scraper.get_sources_and_scrape():
+        count = 1
+        for chunk in chunk_text(entry['content'], 5000, 500):
+            id = f"{entry['url']}unique_number:{count}"
+            sources[id] = chunk
+            count += 1
+
+    # Add sources to Pinecone for the user
+    await add_sources_to_pinecone(user_id, sources)
+    
+    # Precompute claim embedding once for later use
+    claim_embedding = embed_text(claim)
+    
+    relevant_sources = retrieve_sources_from_pinecone(user_id, claim, precomputed_claim_embedding=claim_embedding)
+    
+    # Extract the most relevant snippets
+    snippets = extract_relevant_snippets(claim, relevant_sources, claim_embedding)
+    
+    # Perform fact-checking using the relevant snippets
+    fact_check_result = fact_check_with_openai(claim, snippets)
+    
+    # Output the result
+    print("Claim:", claim)
+    print("Relevant Snippets:", snippets)
+    print("Fact-Check Result:", fact_check_result)
+    print("time: ", time.time() - current_time)
 
 # main function to run the pipeline - TESTING PURPOSES ONLY
 async def main():
@@ -363,4 +420,6 @@ async def main():
     print("Fact-Check Result:", fact_check_result)
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    # asyncio.run(main())
+    # clear_index()
+    asyncio.run(fact_check("The earth revolves around the sun in a circular orbit.", 1244))

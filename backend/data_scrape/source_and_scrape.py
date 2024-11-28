@@ -1,6 +1,6 @@
 # claim_scraper.py
-from sourcing import google_search
-from scrape import scrape_website
+from .sourcing import google_search
+from .scrape import scrape_website
 
 class ClaimScraper:
     def __init__(self, claim, api_key, cx):
