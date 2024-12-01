@@ -203,7 +203,7 @@ def clear_index():
 
 def embed_text(text):
     response = openai_client.embeddings.create(
-        model="text-embedding-ada-002",
+        model= "text-embedding-3-small",
         input=[text]  # Passing the text inside a list as the new API expects a list of inputs
     )
     return response.data[0].embedding  # Accessing the embedding from the response using the .data attribute

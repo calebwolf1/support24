@@ -7,9 +7,9 @@
 //   return (
 //     <View style={styles.container}>
 //       <Text>Hello React Native</Text>
-//       <Button 
+//       <Button
 //         title={"Click me"}
-//         onPress={() => 
+//         onPress={() =>
 //           console.log("Pressed")
 //         }
 //       />
@@ -18,11 +18,12 @@
 //   );
 // }
 
-import React from 'react';
-import { StyleSheet, Text, View, Button } from 'react-native';
-import { Audio } from 'expo-av';
+import React from "react";
+import { StyleSheet, Text, View, Button } from "react-native";
+import { Audio } from "expo-av";
+import NavBar from "../components/Navbar";
 
-export default function RecordScreen() {
+export default function RecordScreen({ navigation, route }) {
   const [recording, setRecording] = React.useState();
   const [recordings, setRecordings] = React.useState([]);
 
@@ -32,9 +33,11 @@ export default function RecordScreen() {
       if (perm.status === "granted") {
         await Audio.setAudioModeAsync({
           allowsRecordingIOS: true,
-          playsInSilentModeIOS: true
+          playsInSilentModeIOS: true,
         });
-        const { recording } = await Audio.Recording.createAsync(Audio.RECORDING_OPTIONS_PRESET_HIGH_QUALITY);
+        const { recording } = await Audio.Recording.createAsync(
+          Audio.RECORDING_OPTIONS_PRESET_HIGH_QUALITY
+        );
         setRecording(recording);
       }
     } catch (err) {}
@@ -49,7 +52,7 @@ export default function RecordScreen() {
     allRecordings.push({
       sound: sound,
       duration: getDurationFormatted(status.durationMillis),
-      file: recording.getURI()
+      file: recording.getURI(),
     });
 
     setRecordings(allRecordings);
@@ -58,7 +61,9 @@ export default function RecordScreen() {
   function getDurationFormatted(milliseconds) {
     const minutes = milliseconds / 1000 / 60;
     const seconds = Math.round((minutes - Math.floor(minutes)) * 60);
-    return seconds < 10 ? `${Math.floor(minutes)}:0${seconds}` : `${Math.floor(minutes)}:${seconds}`
+    return seconds < 10
+      ? `${Math.floor(minutes)}:0${seconds}`
+      : `${Math.floor(minutes)}:${seconds}`;
   }
 
   function getRecordingLines() {
@@ -68,21 +73,27 @@ export default function RecordScreen() {
           <Text style={styles.fill}>
             Recording #{index + 1} | {recordingLine.duration}
           </Text>
-          <Button onPress={() => recordingLine.sound.replayAsync()} title="Play"></Button>
+          <Button
+            onPress={() => recordingLine.sound.replayAsync()}
+            title="Play"
+          ></Button>
         </View>
       );
     });
   }
 
   function clearRecordings() {
-    setRecordings([])
+    setRecordings([]);
   }
 
   return (
     <View style={styles.container}>
-      <Button title={recording ? 'Stop Recording' : 'Start Recording\n\n\n'} onPress={recording ? stopRecording : startRecording} />
-      {getRecordingLines()}
-      <Button title={recordings.length > 0 ? '\n\n\nClear Recordings' : ''} onPress={clearRecordings} />
+      <NavBar transcription={route.name} />
+      <Button
+        title={recording ? "Stop Recording" : "Start Recording\n\n\n"}
+        onPress={recording ? stopRecording : startRecording}
+      />
+      {/* Other components */}
     </View>
   );
 }
@@ -90,19 +101,19 @@ export default function RecordScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#fff",
+    alignItems: "center",
+    justifyContent: "center",
   },
   row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     marginLeft: 10,
-    marginRight: 40
+    marginRight: 40,
   },
   fill: {
     flex: 1,
-    margin: 15
-  }
+    margin: 15,
+  },
 });
