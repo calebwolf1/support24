@@ -177,6 +177,7 @@ import asyncio
 from sklearn.metrics.pairwise import cosine_similarity
 from data_scrape import source_and_scrape
 import time
+import json
 
 dotenv.load_dotenv()
 
@@ -296,12 +297,15 @@ def fact_check_with_openai(claim, snippets):
         "You are an expert fact-checker. Use the following relevant information to fact-check the claim:\n\n"
         "Claim: {claim}\n\n"
         "Relevant Information:\n\n"
+        "Output your response in JSON format with the factuality of the claim (true, false, or unknown), your confidence in this classification (0-100), and the context behind your decision. Example output:"
+        "{{'factuality': 'true', 'confidence': 90, 'context': 'According to Google Finance, it is true that the stock price of NVIDIA is 138.25 USD. However, it is important to note that the stock price of NVIDIA does not reflect the status of the market as a whole. Though the price of NVIDIA increased, the market is still on the decline.'}}"
     )
     relevant_info = "\n\n".join([f"({i+1}) {snippet[0]}" for i, snippet in enumerate(snippets)])
     prompt = prompt.format(claim=claim) + relevant_info
 
     response = openai_client.chat.completions.create(
         model="gpt-4o-mini",
+        response_format={"type": "json_object"},
         messages=[
             {"role": "user", "content": prompt}
         ]
@@ -332,10 +336,8 @@ async def fact_check(claim, user_id):
     # Precompute claim embedding once for later use
     claim_embedding = embed_text(claim)
     
+    # Extract relevant snippets from sources
     relevant_sources = retrieve_sources_from_pinecone(user_id, claim, precomputed_claim_embedding=claim_embedding)
-    
-    # Extract the most relevant snippets
-    # snippets = extract_relevant_snippets(claim, relevant_sources, claim_embedding)
     
     # Perform fact-checking using the relevant snippets
     fact_check_result = fact_check_with_openai(claim, relevant_sources)
@@ -345,6 +347,8 @@ async def fact_check(claim, user_id):
     print("Relevant Snippets:", relevant_sources)
     print("Fact-Check Result:", fact_check_result)
     print("time: ", time.time() - current_time)
+    # Return json result of query
+    return json.loads(fact_check_result)
 
 # main function to run the pipeline - TESTING PURPOSES ONLY
 async def main():
@@ -423,4 +427,4 @@ async def main():
 if __name__ == "__main__":
     # asyncio.run(main())
     # clear_index()
-    asyncio.run(fact_check("The earth revolves around the sun in a circular orbit.", 1244))
+    asyncio.run(fact_check("Donald Trump considered inviting the Taliban to Camp David.", 1244))
