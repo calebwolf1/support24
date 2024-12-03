@@ -21,68 +21,97 @@
 import React from 'react';
 import { StyleSheet, Text, View, Button } from 'react-native';
 import { Audio } from 'expo-av';
+import { useAudioRecorder } from '@siteed/expo-audio-stream';
 
 export default function RecordScreen() {
-  const [recording, setRecording] = React.useState();
-  const [recordings, setRecordings] = React.useState([]);
+  const config = {
+    onAudioStream: async (event) => {
+      console.log('Audio data:', event);
+      // Process the audio data here
+    },
+    interval: 500,
+  };
 
-  async function startRecording() {
-    try {
-      const perm = await Audio.requestPermissionsAsync();
-      if (perm.status === "granted") {
-        await Audio.setAudioModeAsync({
-          allowsRecordingIOS: true,
-          playsInSilentModeIOS: true
-        });
-        const { recording } = await Audio.Recording.createAsync(Audio.RECORDING_OPTIONS_PRESET_HIGH_QUALITY);
-        setRecording(recording);
-      }
-    } catch (err) {}
+  const {
+    startRecording,
+    stopRecording,
+  } = useAudioRecorder({debug: true});
+
+  const [recording, setRecording] = React.useState(false);
+  // const [recordings, setRecordings] = React.useState([]);
+
+  const handleStart = async () => {
+    const { granted } = await Audio.requestPermissionsAsync();
+    if (granted) {
+      const result = await startRecording(config);
+      console.log('Recording started with result:', result)
+      setRecording(true);
+    }
+  };
+
+  async function handleStop() {
+    const result = await stopRecording();
+    setRecording(false);
+    console.log('Recording stopped with result:', result);
   }
 
-  async function stopRecording() {
-    setRecording(undefined);
+  // async function startRecorder() {
+  //   try {
+  //     const perm = await Audio.requestPermissionsAsync();
+  //     if (perm.status === "granted") {
+  //       await Audio.setAudioModeAsync({
+  //         allowsRecordingIOS: true,
+  //         playsInSilentModeIOS: true
+  //       });
+  //       const { recording } = await Audio.Recording.createAsync(Audio.RECORDING_OPTIONS_PRESET_HIGH_QUALITY);
+  //       setRecording(recording);
+  //     }
+  //   } catch (err) {}
+  // }
 
-    await recording.stopAndUnloadAsync();
-    let allRecordings = [...recordings];
-    const { sound, status } = await recording.createNewLoadedSoundAsync();
-    allRecordings.push({
-      sound: sound,
-      duration: getDurationFormatted(status.durationMillis),
-      file: recording.getURI()
-    });
+  // async function stopRecorder() {
+  //   setRecording(undefined);
 
-    setRecordings(allRecordings);
-  }
+  //   await recording.stopAndUnloadAsync();
+  //   let allRecordings = [...recordings];
+  //   const { sound, status } = await recording.createNewLoadedSoundAsync();
+  //   allRecordings.push({
+  //     sound: sound,
+  //     duration: getDurationFormatted(status.durationMillis),
+  //     file: recording.getURI()
+  //   });
 
-  function getDurationFormatted(milliseconds) {
-    const minutes = milliseconds / 1000 / 60;
-    const seconds = Math.round((minutes - Math.floor(minutes)) * 60);
-    return seconds < 10 ? `${Math.floor(minutes)}:0${seconds}` : `${Math.floor(minutes)}:${seconds}`
-  }
+  //   setRecordings(allRecordings);
+  // }
 
-  function getRecordingLines() {
-    return recordings.map((recordingLine, index) => {
-      return (
-        <View key={index} style={styles.row}>
-          <Text style={styles.fill}>
-            Recording #{index + 1} | {recordingLine.duration}
-          </Text>
-          <Button onPress={() => recordingLine.sound.replayAsync()} title="Play"></Button>
-        </View>
-      );
-    });
-  }
+  // function getDurationFormatted(milliseconds) {
+  //   const minutes = milliseconds / 1000 / 60;
+  //   const seconds = Math.round((minutes - Math.floor(minutes)) * 60);
+  //   return seconds < 10 ? `${Math.floor(minutes)}:0${seconds}` : `${Math.floor(minutes)}:${seconds}`
+  // }
 
-  function clearRecordings() {
-    setRecordings([])
-  }
+  // function getRecordingLines() {
+  //   return recordings.map((recordingLine, index) => {
+  //     return (
+  //       <View key={index} style={styles.row}>
+  //         <Text style={styles.fill}>
+  //           Recording #{index + 1} | {recordingLine.duration}
+  //         </Text>
+  //         <Button onPress={() => recordingLine.sound.replayAsync()} title="Play"></Button>
+  //       </View>
+  //     );
+  //   });
+  // }
+
+  // function clearRecordings() {
+  //   setRecordings([])
+  // }
 
   return (
     <View style={styles.container}>
-      <Button title={recording ? 'Stop Recording' : 'Start Recording\n\n\n'} onPress={recording ? stopRecording : startRecording} />
-      {getRecordingLines()}
-      <Button title={recordings.length > 0 ? '\n\n\nClear Recordings' : ''} onPress={clearRecordings} />
+      <Button title={recording ? 'Stop Recording' : 'Start Recording'} onPress={recording ? handleStop : handleStart} />
+      {/* {getRecordingLines()} */}
+      {/* <Button title={recordings.length > 0 ? 'Clear Recordings' : ''} onPress={clearRecordings} /> */}
     </View>
   );
 }
