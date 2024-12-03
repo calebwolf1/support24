@@ -14,7 +14,8 @@ def parse_claim(text):
             retail price of Air Jordans is $15". Be sure not to include opinions or hypotheticals such 
             as: "America is the best country", "Abortion should be illegal", “Gas should be cheaper”, 
             “If Trump wins, Russia would win the war”. With each claim, also include the exact piece 
-            of text where the claim is from. Your output should be JSON and match the provided example.
+            of text where the claim is from. Your output should be in the order in which the claims appear 
+            in the text. Your output should be JSON and match the provided example.
 
             Example input with output:
             Input:
