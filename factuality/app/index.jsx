@@ -1,121 +1,131 @@
-// import { View, Text } from "react-native";
-// import React from "react";
-// import ColorList from "../components/ColorList";
+import React, { useState } from "react";
+import {
+  View,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Pressable,
+  Modal,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-// import { StatusBar } from 'expo-status-bar';
-// import { Text, View, Button } from 'react-native';
+const MainScreen = () => {
+  const [transcription, setTranscription] = useState("");
+  const [previousText, setPreviousText] = useState("");
+  const [isRecording, setIsRecording] = useState(false);
+  const [isPopupVisible, setIsPopupVisible] = useState(false);
+  const [selectedWordDetails, setSelectedWordDetails] = useState("");
 
-// import styles from '../styles/RecordScreenStyles';
+  const toggleRecording = () => {
+    setIsRecording(!isRecording);
+    // Start/stop audio transcription logic here
+  };
 
-// export default function RecordScreen(props) {
-//   return (
-//     <View style={styles.container}>
-//       <Text>Hello React Native</Text>
-//       <Button
-//         title={"Click me"}
-//         onPress={() =>
-//           console.log("Pressed")
-//         }
-//       />
-//       <StatusBar style="auto" />
-//     </View>
-//   );
-// }
+  const handleHighlightPress = (word) => {
+    setSelectedWordDetails(`Details about "${word}"`);
+    setIsPopupVisible(true);
+  };
 
-import React from "react";
-import { StyleSheet, Text, View, Button } from "react-native";
-import { Audio } from "expo-av";
+  const parseTranscription = (text) => {
+    const phrasesToHighlight = [
+      "machine learning",
+      "artificial intelligence",
+      "data science",
+    ]; // placeholder
 
-export default function Home({ navigation, route }) {
-  const [recording, setRecording] = React.useState();
-  const [recordings, setRecordings] = React.useState([]);
+    let result = [];
+    let remainingText = text;
 
-  async function startRecording() {
-    try {
-      const perm = await Audio.requestPermissionsAsync();
-      if (perm.status === "granted") {
-        await Audio.setAudioModeAsync({
-          allowsRecordingIOS: true,
-          playsInSilentModeIOS: true,
-        });
-        const { recording } = await Audio.Recording.createAsync(
-          Audio.RECORDING_OPTIONS_PRESET_HIGH_QUALITY
+    phrasesToHighlight.forEach((phrase) => {
+      const index = remainingText.toLowerCase().indexOf(phrase.toLowerCase());
+
+      if (index !== -1) {
+        // Split the text into three parts: before, match, and after
+        const before = remainingText.slice(0, index);
+        const match = remainingText.slice(index, index + phrase.length);
+        const after = remainingText.slice(index + phrase.length);
+
+        // Push the parts to the result array
+        if (before) result.push(<Text key={before}>{before}</Text>);
+        result.push(
+          <Pressable
+            key={match}
+            onPress={() => handleHighlightPress(match)}
+            style={styles.highlightBox}
+          >
+            <Text style={styles.highlightText}>{match}</Text>
+          </Pressable>
         );
-        setRecording(recording);
+
+        // Update remainingText to only the after part
+        remainingText = after;
       }
-    } catch (err) {}
-  }
-
-  async function stopRecording() {
-    setRecording(undefined);
-
-    await recording.stopAndUnloadAsync();
-    let allRecordings = [...recordings];
-    const { sound, status } = await recording.createNewLoadedSoundAsync();
-    allRecordings.push({
-      sound: sound,
-      duration: getDurationFormatted(status.durationMillis),
-      file: recording.getURI(),
     });
 
-    setRecordings(allRecordings);
-  }
+    // Push any remaining unprocessed text
+    if (remainingText)
+      result.push(<Text key={remainingText}>{remainingText}</Text>);
 
-  function getDurationFormatted(milliseconds) {
-    const minutes = milliseconds / 1000 / 60;
-    const seconds = Math.round((minutes - Math.floor(minutes)) * 60);
-    return seconds < 10
-      ? `${Math.floor(minutes)}:0${seconds}`
-      : `${Math.floor(minutes)}:${seconds}`;
-  }
-
-  function getRecordingLines() {
-    return recordings.map((recordingLine, index) => {
-      return (
-        <View key={index} style={styles.row}>
-          <Text style={styles.fill}>
-            Recording #{index + 1} | {recordingLine.duration}
-          </Text>
-          <Button
-            onPress={() => recordingLine.sound.replayAsync()}
-            title="Play"
-          ></Button>
-        </View>
-      );
-    });
-  }
-
-  function clearRecordings() {
-    setRecordings([]);
-  }
+    return result;
+  };
 
   return (
-    <View style={styles.container}>
-      <Button
-        title={recording ? "Stop Recording" : "Start Recording\n\n\n"}
-        onPress={recording ? stopRecording : startRecording}
-      />
-      {/* Other components */}
-    </View>
+    <SafeAreaView style={{ flex: 1 }}>
+      <ScrollView style={styles.transcriptionBox}>
+        <Text>{parseTranscription(transcription)}</Text>
+      </ScrollView>
+      <TouchableOpacity style={styles.button} onPress={toggleRecording}>
+        <Text>{isRecording ? "Stop" : "Start"}</Text>
+      </TouchableOpacity>
+      <Modal visible={isPopupVisible} transparent={true}>
+        <View style={styles.popup}>
+          <Text>{selectedWordDetails}</Text>
+          <TouchableOpacity onPress={() => setIsPopupVisible(false)}>
+            <Text>Close</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
+    </SafeAreaView>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  container: {
+  transcriptionBox: {
     flex: 1,
+    padding: 10,
+    backgroundColor: "#ffffffff",
+    margin: 10,
+    marginTop: -30,
+  },
+  button: {
+    padding: 10,
+    backgroundColor: "#007AFF",
+    alignItems: "center",
+    margin: 10,
+    marginBottom: 90,
+    borderRadius: 5,
+  },
+  highlightBox: {
+    backgroundColor: "yellow",
+    borderRadius: 5,
+    padding: 2,
+    marginHorizontal: 2,
+  },
+  highlightText: {
+    fontWeight: "bold",
+    color: "black",
+  },
+  popup: {
+    margin: 20,
+    padding: 20,
     backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    marginLeft: 10,
-    marginRight: 40,
-  },
-  fill: {
-    flex: 1,
-    margin: 15,
+    borderRadius: 10,
+    shadowColor: "#000",
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
   },
 });
+
+export default MainScreen;
