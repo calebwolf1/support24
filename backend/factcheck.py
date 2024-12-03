@@ -347,8 +347,12 @@ async def fact_check(claim, user_id):
     print("Relevant Snippets:", relevant_sources)
     print("Fact-Check Result:", fact_check_result)
     print("time: ", time.time() - current_time)
+
     # Return json result of query
-    return json.loads(fact_check_result)
+    result = json.loads(fact_check_result)
+    result.update({"sources":list(set([snippet[1] for snippet in relevant_sources]))})
+    print(result)
+    return result
 
 # main function to run the pipeline - TESTING PURPOSES ONLY
 async def main():
