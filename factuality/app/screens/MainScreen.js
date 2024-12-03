@@ -3,7 +3,7 @@ import { View, ScrollView, Text, TouchableOpacity, StyleSheet, Pressable, Modal 
 
 const MainScreen = () => {
   const [transcription, setTranscription] = useState('');
-  const [previousText, setPreviousText] = useState('');
+  const [previousText, setPreviousText] = useState([]);
   const [isRecording, setIsRecording] = useState(false);
   const [isPopupVisible, setIsPopupVisible] = useState(false);
   const [selectedWordDetails, setSelectedWordDetails] = useState('');
@@ -11,6 +11,10 @@ const MainScreen = () => {
   const toggleRecording = () => {
     setIsRecording(!isRecording);
     // Start/stop audio transcription logic here
+    // start recording
+    // send audio to speech-to-text api
+    // some pipeline stuff happens, display text
+    // every 20 seconds parse and fact check
   };
 
   const handleHighlightPress = (word) => {
@@ -56,7 +60,9 @@ const MainScreen = () => {
     return result;
   };
   
-
+  // need to change, the text displayed should be combination of previous text and transcription. previous text
+  // holds whatever has already been fact checked, transcription holds what is still being fact checked.
+  // after transcription is parsed and fact checked, add it to previous text and clear transcription for incoming text
   return (
     <View style={{ flex: 1 }}>
       <ScrollView style={styles.transcriptionBox}>
