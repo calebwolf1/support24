@@ -4,12 +4,12 @@
     "slug": "factuality",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./app/assets/icon.png",
+    "icon": "./assets/factuality.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./app/assets/splash-icon.png",
-      "resizeMode": "contain",
+      "image": "./assets/factuality_logo.png",
+      "resizeMode": "cover",
       "backgroundColor": "#ffffff"
     },
     "ios": {
@@ -17,12 +17,13 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./app/assets/adaptive-icon.png",
+        "foregroundImage": "./assets/factuality.png",
         "backgroundColor": "#ffffff"
       }
     },
     "web": {
       "favicon": "./app/assets/favicon.png"
-    }
+    },
+    "plugins": ["expo-router"]
   }
 }

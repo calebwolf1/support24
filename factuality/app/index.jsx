@@ -1,3 +1,7 @@
+// import { View, Text } from "react-native";
+// import React from "react";
+// import ColorList from "../components/ColorList";
+
 // import { StatusBar } from 'expo-status-bar';
 // import { Text, View, Button } from 'react-native';
 
@@ -21,9 +25,8 @@
 import React from "react";
 import { StyleSheet, Text, View, Button } from "react-native";
 import { Audio } from "expo-av";
-import NavBar from "../components/Navbar";
 
-export default function RecordScreen({ navigation, route }) {
+export default function Home({ navigation, route }) {
   const [recording, setRecording] = React.useState();
   const [recordings, setRecordings] = React.useState([]);
 
@@ -88,7 +91,6 @@ export default function RecordScreen({ navigation, route }) {
 
   return (
     <View style={styles.container}>
-      <NavBar transcription={route.name} />
       <Button
         title={recording ? "Stop Recording" : "Start Recording\n\n\n"}
         onPress={recording ? stopRecording : startRecording}
