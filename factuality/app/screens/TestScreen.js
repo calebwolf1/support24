@@ -8,7 +8,7 @@ import { useEffect, useState } from 'react';
 
 
 export default function TestScreen() {
-    const backendURL = 'http://192.168.1.39:5000';
+    const backendURL = 'http://10.147.60.87:5000';
 
     const [socket, setSocket] = useState(null);
     const {
@@ -23,7 +23,7 @@ export default function TestScreen() {
         analysisData,
     } = useAudioRecorder({
         debug: true,
-    });
+    })
 
     
 
