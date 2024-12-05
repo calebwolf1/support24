@@ -4,20 +4,21 @@
     "slug": "factuality",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./app/assets/icon.png",
+    "icon": "./assets/factuality.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./app/assets/splash-icon.png",
+      "image": "./assets/factuality_logo.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.factuality.yourapp"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./app/assets/adaptive-icon.png",
+        "foregroundImage": "./assets/factuality.png",
         "backgroundColor": "#ffffff"
       },
       "package": "com.anonymous.factuality"
@@ -25,6 +26,6 @@
     "web": {
       "favicon": "./app/assets/favicon.png"
     },
-    "plugins": ["@siteed/expo-audio-stream"]
+    "plugins": ["@siteed/expo-audio-stream", "expo-router"]
   }
 }
