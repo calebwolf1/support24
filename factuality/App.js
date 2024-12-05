@@ -4,6 +4,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import RecordScreen from './app/screens/RecordScreen'
 import TestScreen from './app/screens/TestScreen'
 import FetchScreen from './app/screens/FetchScreen'
+import MainScreen from './app/screens/MainScreen';
 
 
 const Stack = createStackNavigator();
