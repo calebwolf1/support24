@@ -183,7 +183,9 @@ dotenv.load_dotenv()
 
 pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"), environment="us-east-1")
 index_name = "sources"
-pc.delete_index(index_name)
+
+if pc.has_index(index_name):
+    pc.delete_index(index_name)
 
 if not pc.has_index(index_name):
     pc.create_index(
@@ -266,7 +268,7 @@ def extract_relevant_snippets(claim, sources, claim_embedding=None, similarity_t
     for source in sources:
         # Chunk the source text into smaller segments
         # chunks = chunk_text(source, chunk_size=50, overlap=20)
-        chunks = chunk_text(source[0], chunk_size=500, overlap=50)
+        chunks = chunk_text(source[0], chunk_size=1250, overlap=20)
         
         # Embed each chunk
         print("embedding chunks")
@@ -294,7 +296,7 @@ def extract_relevant_snippets(claim, sources, claim_embedding=None, similarity_t
 def fact_check_with_openai(claim, snippets):
     """Use OpenAI API to fact-check the claim with relevant snippets."""
     prompt = (
-        "You are an expert fact-checker. Use the following relevant information to fact-check the claim:\n\n"
+        "You are an expert fact-checker. Use the following relevant information to fact-check the claim. Ensure to be detail-oriented in you response, for example if the claim states something for college students do not use a statistic about middle school students to support it.\n\n"
         "Claim: {claim}\n\n"
         "Relevant Information:\n\n"
         "Output your response in JSON format with the factuality of the claim (true, false, or unknown), your confidence in this classification (0-100), and the context behind your decision. Example output:"
@@ -431,4 +433,4 @@ async def main():
 if __name__ == "__main__":
     # asyncio.run(main())
     # clear_index()
-    asyncio.run(fact_check("Donald Trump considered inviting the Taliban to Camp David.", 1244))
+    asyncio.run(fact_check("80 percent of college students accept content at face value without investigating the organization's background or potential biases", 1244))
