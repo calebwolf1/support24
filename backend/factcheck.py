@@ -297,7 +297,7 @@ def extract_relevant_snippets(claim, sources, claim_embedding=None, similarity_t
 def fact_check_with_openai(claim, snippets):
     """Use OpenAI API to fact-check the claim with relevant snippets."""
     prompt = (
-        "You are an expert fact-checker. Use the following relevant information to fact-check the claim. Ensure to be detail-oriented in you response, for example if the claim states something for college students do not use a statistic about middle school students to support it.\n\n"
+        "You are an expert fact-checker. Use the following relevant information to fact-check the claim. Ensure to be detail-oriented in you response, for example if the claim states something for college students do not use a statistic about middle school students to support it. For another example, if the claim is that a statistic says 50 percent but in reality it's 70 percent, it is not a factual claim.\n\n"
         "Claim: {claim}\n\n"
         "Relevant Information:\n\n"
         "Output your response in JSON format with the factuality of the claim (true, false, or unknown), your confidence in this classification (0-100), and the context behind your decision. Example output:"
@@ -434,4 +434,4 @@ async def main():
 if __name__ == "__main__":
     # asyncio.run(main())
     # clear_index()
-    asyncio.run(fact_check("75 percent of americans have shared political news on social media without always verifying the facts.", 1244))
+    asyncio.run(fact_check("50 percent across 19 surveyed countries see the spread of misinformation online as a top threat according to Pew Research.", 1244))
