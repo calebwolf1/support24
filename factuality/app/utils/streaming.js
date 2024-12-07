@@ -1,24 +1,3 @@
-// function connectWebSocket(url, onmessage) {
-//   return new Promise((resolve, reject) => {
-//     const ws = new WebSocket(url);
-
-//     ws.onopen = () => {
-//       console.log('WebSocket connection established');
-//       resolve(ws); // Resolve the Promise when the connection is open
-//     };
-
-//     ws.onerror = (error) => {
-//       console.error('WebSocket connection error:', error);
-//       reject(error); // Reject the Promise if there's an error
-//     };
-
-//     ws.onclose = () => {
-//       console.log('WebSocket closed');
-//     };
-
-//     ws.onmessage = onmessage;
-//   });
-// };
 import io from 'socket.io-client';
 
 
