@@ -21,6 +21,11 @@ def scrape_website(url, timeout=3):
         # response = requests.get(url)
         response = requests.get(url, headers=headers, timeout=timeout)
         response.raise_for_status()  # Raise an exception for bad HTTP status codes
+
+        if response.apparent_encoding == None:
+            print(f"{url} not readable")
+            return ""
+        
         soup = BeautifulSoup(response.text, 'html.parser')
 
         # Extract text from paragraphs or other relevant tags
@@ -31,3 +36,4 @@ def scrape_website(url, timeout=3):
         # Handle errors or timeouts by returning an empty string or logging the issue
         print(f"Error scraping {url}: {e}")
         return ""  # Return empty string if the scraping fails or times out
+    

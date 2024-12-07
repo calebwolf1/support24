@@ -250,6 +250,7 @@ def chunk_text(text, chunk_size=100, overlap=20):
     Break text into overlapping chunks.
     """
     words = text.split()
+    # words = list(text)
     chunks = [
         " ".join(words[i : i + chunk_size])
         for i in range(0, len(words), chunk_size - overlap)
@@ -433,4 +434,4 @@ async def main():
 if __name__ == "__main__":
     # asyncio.run(main())
     # clear_index()
-    asyncio.run(fact_check("80 percent of college students accept content at face value without investigating the organization's background or potential biases", 1244))
+    asyncio.run(fact_check("75 percent of americans have shared political news on social media without always verifying the facts.", 1244))
