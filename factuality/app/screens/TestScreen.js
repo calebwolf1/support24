@@ -6,7 +6,7 @@ import useTranscribe from '../hooks/useTranscribe';
 
 
 export default function TestScreen() {
-    const backendURL = 'http://192.168.1.39:5000';
+    const backendURL = 'http://192.168.1.71:5000';
 
     const { startTranscribe, 
         stopTranscribe, 

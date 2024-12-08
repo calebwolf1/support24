@@ -46,3 +46,5 @@ async def process_audio_chunks(audio_queue: asyncio.Queue, send):
                 await asyncio.sleep(0.1)
 
     await asyncio.gather(send_audio(), handler.handle_events())
+    return 1
+
