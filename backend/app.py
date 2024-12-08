@@ -47,9 +47,9 @@ async def claim():
             for claim_obj in claims['claims']:
                 claim_queue.put_nowait(claim_obj)
             socketio.emit('claim', claims['claims'])
+            print("sent claims")
         else:
             print("No transcript available.")
-
 
 async def verify():
     while True:
