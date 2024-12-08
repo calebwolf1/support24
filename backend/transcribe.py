@@ -26,7 +26,7 @@ async def process_audio_chunks(audio_queue: asyncio.Queue, send):
     client = TranscribeStreamingClient(region="us-east-1")
     stream = await client.start_stream_transcription(
         language_code="en-US",
-        media_sample_rate_hz=16000,
+        media_sample_rate_hz=48000,
         media_encoding="pcm",
     )
     

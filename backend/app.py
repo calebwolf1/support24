@@ -46,7 +46,7 @@ async def claim():
             print(claims)
             for claim_obj in claims['claims']:
                 claim_queue.put_nowait(claim_obj)
-                socketio.emit('claim', claim_obj)
+            socketio.emit('claim', claims['claims'])
         else:
             print("No transcript available.")
 

@@ -434,4 +434,4 @@ async def main():
 if __name__ == "__main__":
     # asyncio.run(main())
     # clear_index()
-    asyncio.run(fact_check("50 percent across 19 surveyed countries see the spread of misinformation online as a top threat according to Pew Research.", 1244))
+    asyncio.run(fact_check("51 percent of misinformation sharing among social media users was due to a lack of attention was the driving factor according to https://www.media.mit.edu/articles/why-do-americans-share-so-much-fake-news-one-big-reason-is-they-aren-t-paying-attention-new-research-suggests/", 1244))

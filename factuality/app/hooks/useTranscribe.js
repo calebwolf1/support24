@@ -48,9 +48,9 @@ export default function useTranscribe(url) {
       console.log("Socket null ?", socket == null);
       await startRecording({ 
         interval: 500,
-        sampleRate: 16000,
+        sampleRate: 48000,
         channels: 1,
-        encoding: 'pcm_16bit',
+        // encoding: 'pcm_16bit',
         onAudioStream: onAudioEvent
       });
       console.log("here 2");
@@ -66,6 +66,6 @@ export default function useTranscribe(url) {
     setSocket(null);
   }
 
-  return { startTranscribe, stopTranscribe, isRecording, durationMs, size, transcript };
+  return { startTranscribe, stopTranscribe, isRecording, durationMs, size, transcript, socket };
 
 }
