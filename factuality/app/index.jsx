@@ -19,7 +19,8 @@ const MainScreen = () => {
   const [claims, setClaims] = useState([]); // All claims that have been made throughout the whole text
   const [currentClaims, setCurrentClaims] = useState([]); // Only the claims for the current parsing cycle
   const [verifyResults, setVerifyResults] = useState([]);
-  const [processingText, setProcessingText] = []; // Intermediate storage of text that has been parsed but not fact checked
+  const [processingText, setProcessingText] = useState([]); // Intermediate storage of text that has been parsed but not fact checked
+  const [highlightColors, setHighlightColors] = useState({}); // Stores each phrase and the color it should be highlighted (phrase:color pairs)
   const scrollViewRef = useRef(null);
   const backendURL = 'http://10.148.111.91:5000';
   const { startTranscribe, 
@@ -39,15 +40,23 @@ const MainScreen = () => {
   const claim = async () => {
     socket.on('claim', (claims_obj) => {
       console.log("claims:", claims_obj);
-      // update claims state(s) (add to claims, replace currentClaims) and parse text (thinking of storing claims as dictionary with claim:source text pairs)
-    })
+      // update claims state
+      claims_obj.forEach((pair) => {
+        setCurrentClaims((prevCurrentClaims) => ({
+          ...prevCurrentClaims,
+          [pair['claim']] : pair['source_text'],
+        }));
+      });
+      // parse text
+      parseTranscription(transcription);
+    });
   }
 
   const verify = async () => {
     socket.on('verify', (verify_obj) => {
       console.log("verify:", verify_obj);
       // update verifyResults state (thinking of storing as claim:fact_check_result pairs)
-      // change highlight color of the claim's source text to reflect factuality (green for true, yellow for unkown, red for false)
+      // change highlight color of the claim's source text to reflect factuality (green for true, yellow for unkown, red for false, check fact check doc for how)
       // move all the text until the claim's source text to previousText (it is now completely fact checked, so can be moved to the "permanent" storage)
     })
   }
@@ -62,22 +71,39 @@ const MainScreen = () => {
     let result = [];
     let remainingText = text;
 
-    phrasesToHighlight.forEach((phrase) => {
+    phrasesToHighlight.forEach((phrase, idx) => {
       const index = remainingText.toLowerCase().indexOf(phrase.toLowerCase());
 
       if (index !== -1) {
+        // Only add a claim to the list of total claims if it has been parsed
+        const key = currentClaims.keys().find(key => currentClaims[key] === phrase);
+        // Add to cliams
+        setClaims((prevClaims) => ({
+          ...prevClaims,
+          [key]: phrase,
+        }));
+        // Delete from currentClaims
+        setCurrentClaims((prevCurrentClaims) => {
+          const newClaims = {...prevCurrentClaims};
+          delete newClaims[key];
+          return newClaims;
+        });      
+
         // Split the text into three parts: before, match, and after
         const before = remainingText.slice(0, index);
         const match = remainingText.slice(index, index + phrase.length);
         const after = remainingText.slice(index + phrase.length);
 
         // Push the parts to the result array
-        if (before) result.push(<Text key={before}>{before}</Text>);
+        if (before) result.push(<Text key={`${before}-${idx}`}>{before}</Text>);
         result.push(
           <Pressable
-            key={match}
+            key={`${match}-${idx}`}
             onPress={() => handleHighlightPress(match)}
-            style={styles.highlightBox} // change this to have dynamic highlight color, should be gray by default (check fact check doc for how)
+            style={[
+              styles.highlightBox,
+              { backgroundColor: highlightColors[phrase] || "gray" }, // Dynamic color
+            ]}
           >
             <Text style={styles.highlightText}>{match}</Text>
           </Pressable>
@@ -90,7 +116,7 @@ const MainScreen = () => {
 
     // Push any remaining unprocessed text
     if (remainingText)
-      result.push(<Text key={remainingText}>{remainingText}</Text>);
+      result.push(<Text key={`${remainingText}-${Date.now()}`}>{remainingText}</Text>);
 
     setProcessingText((prevText) => [...prevText, ...result]) // add to processingText
     setTranscription("") // resets transcription
@@ -106,7 +132,7 @@ const MainScreen = () => {
           }
           style={styles.transcriptionBox}
         >
-          <Text>{[...previousText, <Text key={processingText}>{processingText}</Text>, <Text key={transcription}>{transcription}</Text>]}</Text>
+          <Text>{[...previousText, <Text key={`${processingText}-${Date.now()}`}>{processingText}</Text>, <Text key={`${transcription}-${Date.now()}`}>{transcription}</Text>]}</Text>
         </ScrollView>
         {isRecording ? (
             <TouchableOpacity style={styles.button} onPress={stopTranscribe}>
@@ -147,7 +173,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   highlightBox: {
-    backgroundColor: "yellow",
+    backgroundColor: "gray",
     borderRadius: 5,
     padding: 2,
     marginHorizontal: 2,

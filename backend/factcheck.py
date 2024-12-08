@@ -347,7 +347,7 @@ async def fact_check(claim, user_id):
     
     # Output the result
     print("Claim:", claim)
-    print("Relevant Snippets:", relevant_sources)
+    # print("Relevant Snippets:", relevant_sources)
     print("Fact-Check Result:", fact_check_result)
     print("time: ", time.time() - current_time)
 
