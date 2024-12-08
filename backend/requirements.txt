@@ -1,0 +1,10 @@
+amazon_transcribe==0.6.2
+beautifulsoup4==4.12.3
+Flask==2.2.5
+Flask_SocketIO==5.4.1
+llama_index==0.12.3
+openai==1.57.0
+pinecone==5.4.1
+python-dotenv==1.0.1
+Requests==2.32.3
+scikit_learn==1.5.2

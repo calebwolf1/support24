@@ -1,3 +1,4 @@
+import time
 from flask import Flask, request, Response, jsonify
 from flask_socketio import SocketIO, emit
 import asyncio
@@ -7,6 +8,10 @@ import wave
 import os
 
 from transcribe import process_audio_chunks
+from claim_parser import parse_claim
+from factcheck import fact_check
+
+Q_POLLING_RATE = 0.1
 
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*")  # Allow cross-origin requests
@@ -17,17 +22,75 @@ def hello_world():
     return 'Hello World'
 
 
+def send(transcript):
+    socketio.emit('transcription', {'text': transcript})
+    transcript_queue.put_nowait(transcript)
+
+
+async def claim():
+    while True:
+        # likely waits longer than 20 seconds because it adds the sleep time 
+        # and parse_claim time rather than doing max(20, seconds(parse_claim))
+        transcript: str = ""
+        start_time = time.time()
+        while time.time() - start_time < 20:
+            await asyncio.sleep(Q_POLLING_RATE)
+            if not transcript_queue.empty():
+                transcript_chunk = transcript_queue.get_nowait()
+                if transcript_chunk is None:
+                    return 1
+                transcript += transcript_chunk + " "
+        
+        if transcript:
+            claims = parse_claim(transcript)
+            print(claims)
+            for claim_obj in claims['claims']:
+                claim_queue.put_nowait(claim_obj)
+                socketio.emit('claim', claim_obj)
+        else:
+            print("No transcript available.")
+
+
+async def verify():
+    while True:
+        await asyncio.sleep(Q_POLLING_RATE)
+        if claim_queue.empty():
+            continue
+        claim_obj = claim_queue.get_nowait()
+        if claim_obj is None:
+            return 1
+        claim = claim_obj['claim']
+        ftr = await fact_check(claim, 1244) # TODO: figure out UID
+        socketio.emit('verify', {'claim': claim, 'fact_check_result': ftr})
+
+
+async def pipeline():
+    '''
+    shared resources:
+    - audio chunk queue
+    - transcript queue
+    - claims queue
+
+    coroutines:
+    - transcribe from audio queue and add to transcript queue/send to frontend
+    - generate claims from transcript queue and add to claims queue
+    - fact check claims from claims queue and send to frontend
+    '''
+    global audio_queue, transcript_queue, claim_queue
+    audio_queue, transcript_queue, claim_queue = (asyncio.Queue() for _ in range(3))
+    result = await asyncio.gather(process_audio_chunks(audio_queue, send),
+                         claim(),
+                         verify())
+    print(f"Ended pipeline with results {result}.")
+
+
 # Handle connections
 @socketio.on("connect")
 def connect():
     # The request.sid is a unique ID for the client connection.
     # It is added by SocketIO
     print(f'Client connected: {request.sid}')
-    global audio_queue
-    audio_queue = asyncio.Queue()
-    def send(transcript):
-        socketio.emit('transcription', {'text': transcript})
-    threading.Thread(target=lambda: asyncio.run(process_audio_chunks(audio_queue, send))).start()
+    threading.Thread(target=lambda: asyncio.run(pipeline())).start()
 
 
 # Handle the data event. This is a user defined event. In other words,
@@ -45,6 +108,8 @@ def handle_chunk(data):
 def disconnect():
     print(f'Client disconnected: {request.sid}')
     audio_queue.put_nowait(None)  # Signal Transcribe to stop processing
+    transcript_queue.put_nowait(None)
+    claim_queue.put_nowait(None)
 
 
 def valid_audio(chunk):
