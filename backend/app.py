@@ -60,7 +60,9 @@ async def verify():
         if claim_obj is None:
             return 1
         claim = claim_obj['claim']
+        print('STARTING FACT CHECK')
         ftr = await fact_check(claim, 1244) # TODO: figure out UID
+        print('ENDING FACT CHECK')
         socketio.emit('verify', {'claim': claim, 'fact_check_result': ftr})
 
 

@@ -41,7 +41,7 @@ async def process_audio_chunks(audio_queue: asyncio.Queue, send):
                     break
                 await stream.input_stream.send_audio_event(audio_chunk=audio_chunk)
                 # decode_and_append_audio(audio_chunk)
-                # print("sent audio event as input to Transcribe stream")
+                print("sent audio event as input to Transcribe stream")
             except asyncio.QueueEmpty:
                 await asyncio.sleep(0.1)
 
