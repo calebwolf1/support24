@@ -18,7 +18,7 @@ const MainScreen = () => {
   const [selectedWordDetails, setSelectedWordDetails] = useState("");
   const [claims, setClaims] = useState({}); // All claims that have been made throughout the whole text
   const [currentClaims, setCurrentClaims] = useState({}); // Only the claims for the current parsing cycle
-  const [verifyResults, setVerifyResults] = useState([]);
+  const [verifyResults, setVerifyResults] = useState({});
   const [processingText, setProcessingText] = useState([]); // Intermediate storage of text that has been parsed but not fact checked
   const [highlightColors, setHighlightColors] = useState({}); // Stores each phrase and the color it should be highlighted (phrase:color pairs)
   const scrollViewRef = useRef(null);
@@ -33,8 +33,13 @@ const MainScreen = () => {
       socket
     } = useTranscribe(backendURL);
   
-  const handleHighlightPress = (word) => {
-    setSelectedWordDetails(`Details about "${word}"`); // change this to access verify information for the given source text, should display the factuality, confidence, context, and sources
+  const handleHighlightPress = (phrase) => {
+    const factResult = verifyResults[Object.keys(claims).find(key => claims[key] === phrase)] // fact result object for the given phrase
+    if (factResult) {
+      setSelectedWordDetails(factResult); // change this to better display the factuality, confidence, context, and sources
+    } else {
+      setSelectedWordDetails("Loading...");
+    }
     setIsPopupVisible(true);
   };
 
