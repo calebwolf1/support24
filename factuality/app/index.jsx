@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Pressable,
   Modal,
+  Linking,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import useTranscribe from "../hooks/useTranscribe";
@@ -25,7 +26,7 @@ const MainScreen = () => {
   const [currentClaimsUpdatedByClaim, setCurrentClaimsUpdatedByClaim] =
     useState(false); // Flag to track update source
 
-  const backendURL = "http://10.148.67.178:5000";
+  const backendURL = "http://11.20.7.208:5000";
   const {
     startTranscribe,
     stopTranscribe,
@@ -46,12 +47,20 @@ const MainScreen = () => {
 
     if (factResult) {
       // Properly format and update the selected details
-      const details = `
-        Factuality: ${factResult.factuality}\n
-        Confidence: ${factResult.confidence}\n
-        Context: ${factResult.context}\n
-        Sources: ${factResult.sources.join(", ")}
-      `;
+      // const details = `
+      //   Factuality: ${factResult.factuality}\n
+      //   Confidence: ${factResult.confidence}\n
+      //   Context: ${factResult.context}\n
+      //   Sources: ${factResult.sources.join(", ")}
+      // `;
+      const details = {
+        factuality: factResult.factuality || "Unknown",
+        confidence: factResult.confidence || "Unknown",
+        context: factResult.context || "No context available",
+        sources: Array.isArray(factResult.sources)
+          ? factResult.sources
+          : ["No sources available"],
+      };
       setSelectedWordDetails(details);
     } else {
       setSelectedWordDetails("Loading or no data available...");
@@ -85,7 +94,7 @@ const MainScreen = () => {
       setCurrentClaimsUpdatedByClaim(false);
     }
   }, [currentClaims, currentClaimsUpdatedByClaim]);
-  
+
   // helper for verify, extracts the text within an element recursively to account for nested objects
   const extractText = (element) => {
     if (React.isValidElement(element)) {
@@ -137,7 +146,7 @@ const MainScreen = () => {
     );
   }, [highlightColors]); // Run this effect when highlightColors updates
 
-  const verify = async () => { 
+  const verify = async () => {
     socket.on("verify", (verify_obj) => {
       console.log("verify:", verify_obj);
 
@@ -312,22 +321,75 @@ const MainScreen = () => {
             <Text>{"Start"}</Text>
           </TouchableOpacity>
         )}
-        {/* <Modal visible={isPopupVisible} transparent={true}>
-          <SafeAreaView style={styles.modalContainer}>
-            <View style={styles.popup}>
-              <Text>{selectedWordDetails}</Text>
-              <TouchableOpacity onPress={() => setIsPopupVisible(false)}>
-                <Text>Close</Text>
-              </TouchableOpacity>
-            </View>
-          </SafeAreaView>
-        </Modal> */}
         <Modal visible={isPopupVisible} transparent={true}>
           <SafeAreaView style={styles.modalContainer}>
             <View style={styles.popup}>
-              <Text>{selectedWordDetails}</Text>
-              <TouchableOpacity onPress={() => setIsPopupVisible(false)}>
-                <Text>Close</Text>
+              {selectedWordDetails ? (
+                <View>
+                  <Text>
+                    <Text style={{ fontWeight: "bold" }}>Factuality:</Text>{" "}
+                    {selectedWordDetails.factuality}
+                    {"\n"}
+                  </Text>
+                  <Text>
+                    <Text style={{ fontWeight: "bold" }}>Confidence:</Text>{" "}
+                    {selectedWordDetails.confidence}
+                    {"\n"}
+                  </Text>
+                  <Text>
+                    <Text style={{ fontWeight: "bold" }}>Context:</Text>{" "}
+                    {selectedWordDetails.context}
+                    {"\n"}
+                  </Text>
+                  <Text style={{ fontWeight: "bold", marginTop: 10 }}>
+                    Sources:
+                  </Text>
+                  {selectedWordDetails.sources.map((source, index) => (
+                    <View
+                      key={index}
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "flex-start",
+                        marginVertical: 2,
+                      }}
+                    >
+                      <Text style={{ marginRight: 5 }}>•</Text>
+                      <Text
+                        style={{
+                          color: "blue",
+                          textDecorationLine: "underline",
+                        }}
+                        onPress={() => Linking.openURL(source)}
+                      >
+                        {source}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              ) : (
+                <Text>Loading or no data available...</Text>
+              )}
+              <TouchableOpacity
+                onPress={() => setIsPopupVisible(false)}
+                style={{
+                  padding: 10,
+                  paddingTop: 10,
+                  backgroundColor: "#007BFF", // Button color
+                  borderRadius: 5, // Rounded corners
+                  alignItems: "center", // Center text horizontally
+                  justifyContent: "center", // Center text vertically
+                  marginTop: 20, // Optional, adds space above the button
+                }}
+              >
+                <Text
+                  style={{
+                    color: "white", // Text color
+                    fontWeight: "bold", // Make text bold
+                    fontSize: 16, // Adjust font size
+                  }}
+                >
+                  Close
+                </Text>
               </TouchableOpacity>
             </View>
           </SafeAreaView>
