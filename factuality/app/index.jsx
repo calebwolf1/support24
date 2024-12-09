@@ -293,7 +293,7 @@ const MainScreen = () => {
           }
           style={styles.transcriptionBox}
         >
-          <Text>
+          <Text style={{ fontSize: 20 }}>
             {[
               ...previousText,
               <Text
@@ -326,22 +326,24 @@ const MainScreen = () => {
             <View style={styles.popup}>
               {selectedWordDetails ? (
                 <View>
-                  <Text>
+                  <Text style={{ fontSize: 17 }}>
                     <Text style={{ fontWeight: "bold" }}>Factuality:</Text>{" "}
                     {selectedWordDetails.factuality}
                     {"\n"}
                   </Text>
-                  <Text>
+                  <Text style={{ fontSize: 17 }}>
                     <Text style={{ fontWeight: "bold" }}>Confidence:</Text>{" "}
                     {selectedWordDetails.confidence}
                     {"\n"}
                   </Text>
-                  <Text>
+                  <Text style={{ fontSize: 17 }}>
                     <Text style={{ fontWeight: "bold" }}>Context:</Text>{" "}
                     {selectedWordDetails.context}
                     {"\n"}
                   </Text>
-                  <Text style={{ fontWeight: "bold", marginTop: 10 }}>
+                  <Text
+                    style={{ fontWeight: "bold", marginTop: 10, fontSize: 16 }}
+                  >
                     Sources:
                   </Text>
                   {selectedWordDetails.sources.map((source, index) => (
@@ -358,6 +360,7 @@ const MainScreen = () => {
                         style={{
                           color: "blue",
                           textDecorationLine: "underline",
+                          fontSize: 16,
                         }}
                         onPress={() => Linking.openURL(source)}
                       >
@@ -402,7 +405,7 @@ const MainScreen = () => {
 const styles = StyleSheet.create({
   transcriptionBox: {
     flex: 1,
-    padding: 10,
+    padding: 15,
     backgroundColor: "#ffffffff",
     margin: 10,
     marginTop: -30,
@@ -425,11 +428,12 @@ const styles = StyleSheet.create({
     backgroundColor: "gray",
     borderRadius: 5,
     padding: 2,
-    marginHorizontal: 2,
   },
   highlightText: {
     fontWeight: "bold",
     color: "black",
+    fontSize: 18, // Match this with the font size of regular transcript text
+    lineHeight: 20,
   },
   popup: {
     margin: 20,
