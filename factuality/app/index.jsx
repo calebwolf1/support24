@@ -25,7 +25,7 @@ const MainScreen = () => {
   const [currentClaimsUpdatedByClaim, setCurrentClaimsUpdatedByClaim] =
     useState(false); // Flag to track update source
 
-  const backendURL = "http://11.20.7.208:5000";
+  const backendURL = "http://10.148.67.178:5000";
   const {
     startTranscribe,
     stopTranscribe,
@@ -35,18 +35,6 @@ const MainScreen = () => {
     transcript,
     socket,
   } = useTranscribe(backendURL);
-
-  // const handleHighlightPress = (phrase) => {
-  //   const factResult =
-  //     verifyResults[Object.keys(claims).find((key) => claims[key] === phrase)]; // fact result object for the given phrase
-  //   print(factResult);
-  //   if (factResult) {
-  //     setSelectedWordDetails(factResult); // change this to better display the factuality, confidence, context, and sources
-  //   } else {
-  //     setSelectedWordDetails("Loading...");
-  //   }
-  //   setIsPopupVisible(true);
-  // };
 
   const handleHighlightPress = (phrase) => {
     const claimKey = Object.keys(claims).find((key) => claims[key] === phrase);
@@ -93,49 +81,11 @@ const MainScreen = () => {
       parseTranscription(transcription);
       console.log("current claims:" + Object.keys(currentClaims));
       console.log("total claims:" + Object.keys(claims));
-      const handleHighlightPress = (phrase) => {
-        const claimKey = Object.keys(claims).find(
-          (key) => claims[key] === phrase
-        );
-        const factResult = claimKey
-          ? verifyResults[claimKey]
-          : "nothing received?";
-
-        // console.log("Selected phrase:", phrase);
-        // console.log("Claim Key:", claimKey);
-        // console.log("Fact Result:", factResult);
-
-        // console.log("json is: " + JSON.stringify(factResult));
-
-        // Accessing the values
-        const claim = verify.claim; // "The earth is flat."
-        const factCheckResult = verify.fact_check_result; // Object containing factuality, confidence, etc.
-        const confidence = factCheckResult.confidence; // 100
-        const context = factCheckResult.context; // Detailed context about the claim
-        const factuality = factCheckResult.factuality; // "false"
-        const sources = factCheckResult.sources; // Array of sources
-
-        // Example Output
-        console.log("Claim:", claim);
-        console.log("Factuality:", factuality);
-        console.log("Confidence:", confidence);
-        console.log("Context:", context);
-        console.log("Sources:", sources);
-
-        if (factResult) {
-          setSelectedWordDetails(
-            `Factuality: ${factResult.factuality}\nConfidence: ${factResult.confidence}\nContext: ${factResult.context}\nSources: ${factResult.sources}`
-          );
-        } else {
-          setSelectedWordDetails("Loading or no data available...");
-        }
-        setIsPopupVisible(true);
-      };
       // Reset the flag after parsing
       setCurrentClaimsUpdatedByClaim(false);
     }
-  }, [currentClaims, currentClaimsUpdatedByClaim, verifyResults]);
-
+  }, [currentClaims, currentClaimsUpdatedByClaim]);
+  
   // helper for verify, extracts the text within an element recursively to account for nested objects
   const extractText = (element) => {
     if (React.isValidElement(element)) {
@@ -158,7 +108,36 @@ const MainScreen = () => {
     return ""; // Default return for non-valid elements
   };
 
-  const verify = async () => {
+  useEffect(() => {
+    for (const key in highlightColors) {
+      console.log(key + ": " + highlightColors[key]);
+    }
+    // Regenerate processingText to reflect new highlight colors
+    setProcessingText((prevText) =>
+      prevText.map((element) => {
+        if (React.isValidElement(element) && element.props.onPress) {
+          const phrase = extractText(element);
+          console.log(phrase);
+          console.log(highlightColors[phrase]);
+          return (
+            <Pressable
+              key={phrase + Math.random()}
+              onPress={() => handleHighlightPress(phrase)}
+              style={[
+                styles.highlightBox,
+                { backgroundColor: highlightColors[phrase] || "gray" },
+              ]}
+            >
+              <Text style={styles.highlightText}>{phrase}</Text>
+            </Pressable>
+          );
+        }
+        return element; // Non-Pressable elements remain unchanged
+      })
+    );
+  }, [highlightColors]); // Run this effect when highlightColors updates
+
+  const verify = async () => { 
     socket.on("verify", (verify_obj) => {
       console.log("verify:", verify_obj);
 
@@ -171,20 +150,32 @@ const MainScreen = () => {
           : factuality === "false"
           ? "red"
           : "yellow";
-      colors[claims[verify_obj["claim"]]] = color;
-      setHighlightColors(colors);
+      // Update the highlightColors by merging with the existing state
+      const claimText = claims[verify_obj["claim"]];
+      setHighlightColors((prevColors) => ({
+        ...prevColors, // Retain existing colors
+        [claimText]: color, // Add or update the color for the current claim
+      }));
 
-      // Move fact-checked text to previousText
+      // Find the index of the element
       const index = processingText.findIndex((element) => {
         const text = extractText(element);
         return text.includes(claims[verify_obj["claim"]]);
       });
 
       if (index !== -1) {
-        const elementsToMove = processingText.slice(0, index + 1);
-        const remainingElements = processingText.slice(index + 1);
-        setPreviousText((prev) => [...prev, ...elementsToMove]);
-        setProcessingText(remainingElements);
+        // Schedule the movement to happen after the re-render
+        setTimeout(() => {
+          setProcessingText((prevText) => {
+            const elementsToMove = prevText.slice(0, index + 1);
+            const remainingElements = prevText.slice(index + 1);
+
+            // Move fact-checked text to previousText
+            setPreviousText((prev) => [...prev, ...elementsToMove]);
+
+            return remainingElements; // Update processingText
+          });
+        }, 0); // Allow one render cycle for highlight color to update
       }
 
       // Update verifyResults
