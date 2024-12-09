@@ -326,7 +326,7 @@ async def fact_check(claim, user_id):
 
     # builds a dictionary of url:content pairs from scraped sources
     sources = {}
-    for entry in scraper.get_sources_and_scrape():
+    for entry in await scraper.get_sources_and_scrape():
         count = 1
         for chunk in chunk_text(entry['content'], 1250, 20):
             id = f"{entry['url']}unique_number:{count}"

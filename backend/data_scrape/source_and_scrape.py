@@ -1,6 +1,7 @@
 # claim_scraper.py
 from .sourcing import google_search
 from .scrape import scrape_website
+import asyncio
 
 class ClaimScraper:
     def __init__(self, claim, api_key, cx):
@@ -15,7 +16,7 @@ class ClaimScraper:
         self.cx = cx
         self.sources = []  # To store links for the claim
 
-    def get_sources_and_scrape(self):
+    async def get_sources_and_scrape(self):
         """
         Get sources (links) for the claim and scrape content from each source.
         """
@@ -24,6 +25,7 @@ class ClaimScraper:
 
         # Scrape each source (URL)
         for url in self.sources:
+            await asyncio.sleep(0.1)
             try:
                 print(f"Scraping content from: {url}")
                 content = scrape_website(url)
