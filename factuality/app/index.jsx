@@ -49,7 +49,7 @@ const MainScreen = () => {
       const newState = {...currentClaims};
       // update claims state
       claims_obj.forEach((pair) => {
-        newState[pair['claim']] = pair['source_text'];
+        newState[pair['claim']] = pair['source_text']; // stores claim:source_text pairs
       });
 
       setCurrentClaimsUpdatedByClaim(true);
@@ -68,12 +68,63 @@ const MainScreen = () => {
     }
   }, [currentClaims, currentClaimsUpdatedByClaim]);
 
+  // helper for verify, extracts the text within an element recursively to account for nested objects
+  const extractText = (element) => {
+    if (React.isValidElement(element)) {
+      // If the element has children, check if the child is a <Text> component
+      if (element.props.children) {
+        if (Array.isArray(element.props.children)) {
+          // If children is an array, recurse through it
+          return element.props.children.map((child) => extractText(child)).join("");
+        } else if (React.isValidElement(element.props.children)) {
+          // If there's a single child element, recurse into it
+          return extractText(element.props.children);
+        } else {
+          // If the child is raw text, return it
+          return element.props.children;
+        }
+      }
+    }
+    return ""; // Default return for non-valid elements
+  };
+
   const verify = async () => {
     socket.on('verify', (verify_obj) => {
       console.log("verify:", verify_obj);
-      // update verifyResults state (thinking of storing as claim:fact_check_result pairs)
-      // change highlight color of the claim's source text to reflect factuality (green for true, yellow for unkown, red for false, check fact check doc for how)
+
+      // change highlight color of the claim's source text to reflect factuality
+      const colors = {...highlightColors};
+      if (verify_obj['fact_check_result']['factuality'] == 'true') {
+        colors[claims[verify_obj['claim']]] = 'green';
+      } else if (verify_obj['fact_check_result']['factuality'] == 'false') {
+        colors[claims[verify_obj['claim']]] = 'red';
+      } else {
+        colors[claims[verify_obj['claim']]] = 'yellow';
+      }
+      setHighlightColors(colors);
+
       // move all the text until the claim's source text to previousText (it is now completely fact checked, so can be moved to the "permanent" storage)
+      const index = processingText.findIndex((element) => {
+        const text = extractText(element); // Extract the text from the element
+        return text.includes(claims[verify_obj['claim']]); // Check if the text contains the source text
+      });
+    
+      if (index !== -1) {
+        // Split the processingText into two parts
+        const elementsToMove = processingText.slice(0, index + 1); // Elements to move
+        const remainingElements = processingText.slice(index + 1); // Remaining elements
+    
+        // Update states
+        setPreviousText((prev) => [...prev, ...elementsToMove]); // Add to previousText
+        setProcessingText(remainingElements); // Update processingText
+      } else {
+        console.log(`Phrase "${phrase}" not found in processingText.`);
+      }
+
+      // update verifyResults state 
+      const results = {...verifyResults};
+      results[verify_obj['claim']] = verify_obj['fact_check_result'];
+      setVerifyResults(results);
     })
   }
 
