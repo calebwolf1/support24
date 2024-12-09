@@ -238,7 +238,7 @@ def retrieve_sources_from_pinecone(user_id, claim, precomputed_claim_embedding=N
     namespace = f"user_{user_id}"
     search_results = index.query(vector=precomputed_claim_embedding, top_k=5, include_metadata=True, namespace=namespace)
 
-    print("Pinecone search results:", search_results)  # Debugging line
+    # print("Pinecone search results:", search_results)  # Debugging line
 
     # Stores both the content of the source and its url (separated from the unique id necessary for 
     # storage of the chunks)
@@ -434,4 +434,4 @@ async def main():
 if __name__ == "__main__":
     # asyncio.run(main())
     # clear_index()
-    asyncio.run(fact_check("51 percent of misinformation sharing among social media users was due to a lack of attention was the driving factor according to https://www.media.mit.edu/articles/why-do-americans-share-so-much-fake-news-one-big-reason-is-they-aren-t-paying-attention-new-research-suggests/", 1244))
+    asyncio.run(fact_check("institutions can spend 20 billion dollars on education technology and online programs", 1244))

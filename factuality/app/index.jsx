@@ -22,7 +22,8 @@ const MainScreen = () => {
   const [processingText, setProcessingText] = useState([]); // Intermediate storage of text that has been parsed but not fact checked
   const [highlightColors, setHighlightColors] = useState({}); // Stores each phrase and the color it should be highlighted (phrase:color pairs)
   const scrollViewRef = useRef(null);
-  const backendURL = 'http://10.148.111.91:5000';
+  const [currentClaimsUpdatedByClaim, setCurrentClaimsUpdatedByClaim] = useState(false); // Flag to track update source
+  const backendURL = 'http://10.148.246.37:5000';
   const { startTranscribe, 
       stopTranscribe, 
       isRecording, 
@@ -40,27 +41,27 @@ const MainScreen = () => {
   const claim = async () => {
     socket.on('claim', (claims_obj) => {
       console.log("claims:", claims_obj);
-      const before = currentClaims;
+      const newState = {...currentClaims};
       // update claims state
       claims_obj.forEach((pair) => {
-        console.log("current claim: " + pair['claim'] + ":" + pair['source_text']);
-        setCurrentClaims(prevCurrentClaims => {
-          const newState = {
-            ...prevCurrentClaims,
-            [pair['claim']]: pair['source_text'],
-          };
-          console.log(newState); // This will log the updated state
-          return newState;
-        });
+        newState[pair['claim']] = pair['source_text'];
       });
 
-      while (Object.keys(before) == Object.keys(currentClaims)) {
-        console.log("waiting");
-      }
-      console.log(currentClaims);
-      parseTranscription(transcription);
+      setCurrentClaimsUpdatedByClaim(true);
+      setCurrentClaims(newState);
     });
   }
+
+  useEffect(() => {
+    // Check if the update comes from the claim
+    if (currentClaimsUpdatedByClaim) {
+      parseTranscription(transcription);
+      console.log("current claims:" + Object.keys(currentClaims));
+      console.log("total claims:" + Object.keys(claims));
+      // Reset the flag after parsing
+      setCurrentClaimsUpdatedByClaim(false);
+    }
+  }, [currentClaims, currentClaimsUpdatedByClaim]);
 
   const verify = async () => {
     socket.on('verify', (verify_obj) => {
@@ -93,9 +94,11 @@ const MainScreen = () => {
 
   const parseTranscription = (text) => {
     const phrasesToHighlight = Object.values(currentClaims);
-
+    console.log("phrases to highlight: " + phrasesToHighlight);
     let result = [];
     let remainingText = text;
+    const tempClaims = claims;
+    const tempCurrentClaims = currentClaims;
 
     phrasesToHighlight.forEach((phrase) => {
       const index = remainingText.toLowerCase().indexOf(phrase.toLowerCase());
@@ -103,17 +106,12 @@ const MainScreen = () => {
       if (index !== -1) {
         // Only add a claim to the list of total claims if it has been parsed
         const key = Object.keys(currentClaims).find(key => currentClaims[key] === phrase);
-        // Add to cliams
-        setClaims((prevClaims) => ({
-          ...prevClaims,
-          [key]: phrase,
-        }));
+        
+        // Add to claims
+        tempClaims[key] = phrase;
+
         // Delete from currentClaims
-        setCurrentClaims((prevCurrentClaims) => {
-          const newClaims = {...prevCurrentClaims};
-          delete newClaims[key];
-          return newClaims;
-        });      
+        delete tempCurrentClaims[key];
 
         // Split the text into three parts: before, match, and after
         const before = remainingText.slice(0, index);
@@ -121,10 +119,10 @@ const MainScreen = () => {
         const after = remainingText.slice(index + phrase.length);
 
         // Push the parts to the result array
-        if (before) result.push(<Text key={`${before}-${Date.now()}`}>{before}</Text>);
+        if (before) result.push(<Text key={`${before}-${Date.now()+1}+${Math.random()}`}>{before}</Text>);
         result.push(
           <Pressable
-            key={`${match}-${Date.now()}`}
+            key={`${match}-${Date.now()}+${Math.random()}`}
             onPress={() => handleHighlightPress(match)}
             style={[
               styles.highlightBox,
@@ -142,10 +140,13 @@ const MainScreen = () => {
 
     // Push any remaining unprocessed text
     if (remainingText)
-      result.push(<Text key={`${remainingText}-${Date.now()}`}>{remainingText}</Text>);
+      result.push(<Text key={`${remainingText}-${Date.now()-1}+${Math.random()}`}>{remainingText}</Text>);
 
     setProcessingText((prevText) => [...prevText, ...result]) // add to processingText
     setTranscription("") // resets transcription
+    // Updates claim states
+    setClaims(tempClaims);
+    setCurrentClaims(tempCurrentClaims);
   };
 
   return (
@@ -158,7 +159,7 @@ const MainScreen = () => {
           }
           style={styles.transcriptionBox}
         >
-          <Text>{[...previousText, <Text key={`${processingText}-${Date.now()+1}`}>{processingText}</Text>, <Text key={`${transcription}-${Date.now()-1}`}>{transcription}</Text>]}</Text>
+          <Text>{[...previousText, <Text key={`${processingText}-${Date.now()+1}+${Math.random()}`}>{processingText}</Text>, <Text key={`${transcription}-${Date.now()-1}+${Math.random()}`}>{transcription}</Text>]}</Text>
         </ScrollView>
         {isRecording ? (
             <TouchableOpacity style={styles.button} onPress={stopTranscribe}>
