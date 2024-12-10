@@ -28,8 +28,9 @@ class ClaimScraper:
             await asyncio.sleep(0.1)
             try:
                 print(f"Scraping content from: {url}")
-                content = scrape_website(url)
-                scraped_data.append({'url': url, 'content': content})
+                if ".pdf" not in url:
+                    content = scrape_website(url)
+                    scraped_data.append({'url': url, 'content': content})
             except Exception as e:
                 print(f"Failed to scrape {url}: {e}")
                 continue

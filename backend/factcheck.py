@@ -184,8 +184,8 @@ dotenv.load_dotenv()
 pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"), environment="us-east-1")
 index_name = "sources"
 
-if pc.has_index(index_name):
-    pc.delete_index(index_name)
+# if pc.has_index(index_name):
+#     pc.delete_index(index_name)
 
 if not pc.has_index(index_name):
     pc.create_index(
@@ -434,4 +434,4 @@ async def main():
 if __name__ == "__main__":
     # asyncio.run(main())
     # clear_index()
-    asyncio.run(fact_check("institutions can spend 20 billion dollars on education technology and online programs", 1244))
+    asyncio.run(fact_check("55 percent of people across 19 surveyed countries see the spread of misinformation online as a top threat according to Pew", 1244))
