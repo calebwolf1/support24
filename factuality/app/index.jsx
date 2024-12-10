@@ -155,7 +155,7 @@ const MainScreen = () => {
       const factuality = verify_obj["fact_check_result"]["factuality"];
       const color =
         factuality === "true"
-          ? "green"
+          ? "#50C878"
           : factuality === "false"
           ? "#EE4B2B"
           : "yellow";
