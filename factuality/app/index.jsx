@@ -157,7 +157,7 @@ const MainScreen = () => {
         factuality === "true"
           ? "green"
           : factuality === "false"
-          ? "red"
+          ? "#EE4B2B"
           : "yellow";
       // Update the highlightColors by merging with the existing state
       const claimText = claims[verify_obj["claim"]];
@@ -326,17 +326,17 @@ const MainScreen = () => {
             <View style={styles.popup}>
               {selectedWordDetails ? (
                 <View>
-                  <Text style={{ fontSize: 17 }}>
+                  <Text style={{ fontSize: 16 }}>
                     <Text style={{ fontWeight: "bold" }}>Factuality:</Text>{" "}
                     {selectedWordDetails.factuality}
                     {"\n"}
                   </Text>
-                  <Text style={{ fontSize: 17 }}>
+                  <Text style={{ fontSize: 16 }}>
                     <Text style={{ fontWeight: "bold" }}>Confidence:</Text>{" "}
                     {selectedWordDetails.confidence}
                     {"\n"}
                   </Text>
-                  <Text style={{ fontSize: 17 }}>
+                  <Text style={{ fontSize: 16 }}>
                     <Text style={{ fontWeight: "bold" }}>Context:</Text>{" "}
                     {selectedWordDetails.context}
                     {"\n"}
