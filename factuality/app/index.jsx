@@ -26,7 +26,7 @@ const MainScreen = () => {
   const [currentClaimsUpdatedByClaim, setCurrentClaimsUpdatedByClaim] =
     useState(false); // Flag to track update source
 
-  const backendURL = "http://11.20.7.208:5000";
+  const backendURL = "http://172.20.10.2:5000";
   const {
     startTranscribe,
     stopTranscribe,
@@ -324,7 +324,7 @@ const MainScreen = () => {
         <Modal visible={isPopupVisible} transparent={true}>
           <SafeAreaView style={styles.modalContainer}>
             <View style={styles.popup}>
-              {selectedWordDetails ? (
+              {(selectedWordDetails && selectedWordDetails.sources) ? (
                 <View>
                   <Text style={{ fontSize: 16 }}>
                     <Text style={{ fontWeight: "bold" }}>Factuality:</Text>{" "}
