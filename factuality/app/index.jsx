@@ -195,17 +195,9 @@ const MainScreen = () => {
     });
   };
 
-  const test = async () => {
-    console.log("starting test listening");
-    socket.on("test", (test_obj) => {
-      console.log(test_obj);
-    });
-  };
-
   useEffect(() => {
     if (socket != null) {
       console.log("SOCKET NOT NULL");
-      test();
       claim();
       verify();
     }
